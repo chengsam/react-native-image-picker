@@ -552,7 +552,7 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
     switch (requestCode)
     {
       case REQUEST_PERMISSIONS_FOR_CAMERA:
-        permissionsGrated = cameraPermission == PackageManager.PERMISSION_GRANTED;
+        permissionsGrated = cameraPermission == PackageManager.PERMISSION_GRANTED && writePermission == PackageManager.PERMISSION_GRANTED;
         break;
 
       case REQUEST_PERMISSIONS_FOR_LIBRARY:
@@ -570,7 +570,7 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
       switch (requestCode)
       {
         case REQUEST_PERMISSIONS_FOR_CAMERA:
-          dontAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA);
+          dontAskAgain = ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA) && ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
           break;
 
         case REQUEST_PERMISSIONS_FOR_LIBRARY:
@@ -629,7 +629,7 @@ public class ImagePickerModule extends ReactContextBaseJavaModule
         switch (requestCode)
         {
           case REQUEST_PERMISSIONS_FOR_CAMERA:
-            PERMISSIONS = new String[]{Manifest.permission.CAMERA};
+            PERMISSIONS = new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
             break;
 
           case REQUEST_PERMISSIONS_FOR_LIBRARY:
