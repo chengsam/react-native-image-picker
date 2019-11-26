@@ -295,6 +295,11 @@ RCT_EXPORT_METHOD(showImagePicker:(NSDictionary *)options callback:(RCTResponseS
             else {
                 originalImage = [info objectForKey:UIImagePickerControllerOriginalImage];
             }
+          
+            if (originalImage == nil) {
+              self.callback(@[@{@"error": @"Image is nil"}]);
+              return;
+            }
 
             if (imageURL) {
                 PHAsset *pickedAsset = [PHAsset fetchAssetsWithALAssetURLs:@[imageURL] options:nil].lastObject;
