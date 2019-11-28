@@ -132,87 +132,89 @@ RCT_EXPORT_METHOD(showImagePicker:(NSDictionary *)options callback:(RCTResponseS
 
 - (void)launchImagePicker:(RNImagePickerTarget)target
 {
+  dispatch_async(dispatch_get_main_queue(), ^{
     self.picker = [[UIImagePickerController alloc] init];
 
-    if (target == RNImagePickerTargetCamera) {
-#if TARGET_IPHONE_SIMULATOR
-        self.callback(@[@{@"error": @"Camera not available on simulator"}]);
-        return;
-#else
-        self.picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-        if ([[self.options objectForKey:@"cameraType"] isEqualToString:@"front"]) {
-            self.picker.cameraDevice = UIImagePickerControllerCameraDeviceFront;
-        }
-        else { // "back"
-            self.picker.cameraDevice = UIImagePickerControllerCameraDeviceRear;
-        }
-#endif
-    }
-    else { // RNImagePickerTargetLibrarySingleImage
-        self.picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-    }
+      if (target == RNImagePickerTargetCamera) {
+  #if TARGET_IPHONE_SIMULATOR
+          self.callback(@[@{@"error": @"Camera not available on simulator"}]);
+          return;
+  #else
+          self.picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+          if ([[self.options objectForKey:@"cameraType"] isEqualToString:@"front"]) {
+              self.picker.cameraDevice = UIImagePickerControllerCameraDeviceFront;
+          }
+          else { // "back"
+              self.picker.cameraDevice = UIImagePickerControllerCameraDeviceRear;
+          }
+  #endif
+      }
+      else { // RNImagePickerTargetLibrarySingleImage
+          self.picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+      }
 
-    if ([[self.options objectForKey:@"mediaType"] isEqualToString:@"video"]
-        || [[self.options objectForKey:@"mediaType"] isEqualToString:@"mixed"]) {
+      if ([[self.options objectForKey:@"mediaType"] isEqualToString:@"video"]
+          || [[self.options objectForKey:@"mediaType"] isEqualToString:@"mixed"]) {
 
-        if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"high"]) {
-            self.picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
-        }
-        else if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"low"]) {
-            self.picker.videoQuality = UIImagePickerControllerQualityTypeLow;
-        }
-        else {
-            self.picker.videoQuality = UIImagePickerControllerQualityTypeMedium;
-        }
+          if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"high"]) {
+              self.picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
+          }
+          else if ([[self.options objectForKey:@"videoQuality"] isEqualToString:@"low"]) {
+              self.picker.videoQuality = UIImagePickerControllerQualityTypeLow;
+          }
+          else {
+              self.picker.videoQuality = UIImagePickerControllerQualityTypeMedium;
+          }
 
-        id durationLimit = [self.options objectForKey:@"durationLimit"];
-        if (durationLimit) {
-            self.picker.videoMaximumDuration = [durationLimit doubleValue];
-            self.picker.allowsEditing = NO;
-        }
-    }
-    if ([[self.options objectForKey:@"mediaType"] isEqualToString:@"video"]) {
-        self.picker.mediaTypes = @[(NSString *)kUTTypeMovie];
-    } else if ([[self.options objectForKey:@"mediaType"] isEqualToString:@"mixed"]) {
-        self.picker.mediaTypes = @[(NSString *)kUTTypeMovie, (NSString *)kUTTypeImage];
-    } else {
-        self.picker.mediaTypes = @[(NSString *)kUTTypeImage];
-    }
+          id durationLimit = [self.options objectForKey:@"durationLimit"];
+          if (durationLimit) {
+              self.picker.videoMaximumDuration = [durationLimit doubleValue];
+              self.picker.allowsEditing = NO;
+          }
+      }
+      if ([[self.options objectForKey:@"mediaType"] isEqualToString:@"video"]) {
+          self.picker.mediaTypes = @[(NSString *)kUTTypeMovie];
+      } else if ([[self.options objectForKey:@"mediaType"] isEqualToString:@"mixed"]) {
+          self.picker.mediaTypes = @[(NSString *)kUTTypeMovie, (NSString *)kUTTypeImage];
+      } else {
+          self.picker.mediaTypes = @[(NSString *)kUTTypeImage];
+      }
 
-    if ([[self.options objectForKey:@"allowsEditing"] boolValue]) {
-        self.picker.allowsEditing = true;
-    }
-    self.picker.modalPresentationStyle = UIModalPresentationCurrentContext;
-    self.picker.delegate = self;
+      if ([[self.options objectForKey:@"allowsEditing"] boolValue]) {
+          self.picker.allowsEditing = true;
+      }
+      self.picker.modalPresentationStyle = UIModalPresentationCurrentContext;
+      self.picker.delegate = self;
 
-    // Check permissions
-    void (^showPickerViewController)() = ^void() {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            UIViewController *root = RCTPresentedViewController();
-            [root presentViewController:self.picker animated:YES completion:nil];
-        });
-    };
+      // Check permissions
+      void (^showPickerViewController)() = ^void() {
+          dispatch_async(dispatch_get_main_queue(), ^{
+              UIViewController *root = RCTPresentedViewController();
+              [root presentViewController:self.picker animated:YES completion:nil];
+          });
+      };
 
-    if (target == RNImagePickerTargetCamera) {
-        [self checkCameraPermissions:^(BOOL granted) {
-            if (!granted) {
-                self.callback(@[@{@"error": @"Camera permissions not granted"}]);
-                return;
-            }
+      if (target == RNImagePickerTargetCamera) {
+          [self checkCameraPermissions:^(BOOL granted) {
+              if (!granted) {
+                  self.callback(@[@{@"error": @"Camera permissions not granted"}]);
+                  return;
+              }
 
-            showPickerViewController();
-        }];
-    }
-    else { // RNImagePickerTargetLibrarySingleImage
-        [self checkPhotosPermissions:^(BOOL granted) {
-            if (!granted) {
-                self.callback(@[@{@"error": @"Photo library permissions not granted"}]);
-                return;
-            }
+              showPickerViewController();
+          }];
+      }
+      else { // RNImagePickerTargetLibrarySingleImage
+          [self checkPhotosPermissions:^(BOOL granted) {
+              if (!granted) {
+                  self.callback(@[@{@"error": @"Photo library permissions not granted"}]);
+                  return;
+              }
 
-            showPickerViewController();
-        }];
-    }
+              showPickerViewController();
+          }];
+      }
+    });
 }
 
 - (NSString * _Nullable)originalFilenameForAsset:(PHAsset * _Nullable)asset assetType:(PHAssetResourceType)type {
